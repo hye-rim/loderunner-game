@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>금괴 도둑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+  /* 아이폰 사파리는 -webkit- 접두사를 붙여야 알아듣는다: 버튼을 누르다 글자가 파랗게 선택(블록)되거나
+     길게 눌러 복사 메뉴가 뜨지 않게. 입력칸은 그대로 선택·붙여넣기 되게 둔다 */
+  *, *::before, *::after { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  input, textarea, [contenteditable] { -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
+
+  /* 작은 오락실 공통 스티커 스타일: 진한 남보라 테두리 + 아래로 떨어진 그림자 + 둥근 글꼴 */
+  :root { --ink:#2b1d52; --yellow:#ffd23f; --pink:#ff5fa2; --muted:#6b5c95; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body {
+    width:100%; height:100%; overflow:hidden;
+    background:
+      repeating-linear-gradient(-30deg, rgba(255,255,255,.07) 0 26px, transparent 26px 56px),
+      linear-gradient(180deg, #4f8cff 0%, #6b5cff 55%, #8a4fe0 100%);
+    font-family:'Jua', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    color:var(--ink);
+    touch-action:none;
+  }
+  #stage {
+    width:100%; height:100dvh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:8px;
+  }
+  #hud { display:flex; align-items:center; gap:6px; padding:0 2px 8px; font-variant-numeric:tabular-nums; width:100%; }
+  #hud .item {
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+    background:#fff; border:3px solid var(--ink); border-radius:999px; box-shadow:0 4px 0 var(--ink);
+    padding:2px 10px; height:38px;
+  }
+  #hud .item.gold { background:var(--yellow); }
+  #hud .label { font-size:11px; color:var(--muted); }
+  #hud .item.gold .label { color:#8a5a00; }
+  #hud .value { font-size:19px; }
+  #hud .icons { display:flex; gap:6px; margin-left:auto; }
+  #hud button {
+    background:#fff; border:3px solid var(--ink); color:var(--ink);
+    width:36px; height:36px; border-radius:12px; font-size:15px; cursor:pointer;
+    box-shadow:0 4px 0 var(--ink);
+  }
+  #hud button:active { transform:translateY(3px); box-shadow:0 1px 0 var(--ink); }
+  #wrap { position:relative; }
+  #game {
+    display:block; touch-action:none;
+    border:4px solid var(--ink); border-radius:18px; box-shadow:0 6px 0 var(--ink);
+    background:#1c1440;
+  }
+  #overlay {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:safe center; gap:12px;
+    text-align:center; padding:20px;
+    background:rgba(43,29,82,.62);
+    border-radius:18px;
+    backdrop-filter:blur(3px);
+    overflow-y:auto;
+    touch-action:pan-y;
+  }
+  #overlay.hidden { display:none; }
+  #overlay h1, #overlay h2 {
+    color:#fff; font-weight:400; paint-order:stroke fill; -webkit-text-stroke:6px var(--ink); text-shadow:0 5px 0 var(--ink);
+  }
+  #overlay h1 { font-size:clamp(44px, 13vw, 56px); line-height:1.05; color:var(--yellow); }
+  #overlay h2 { font-size:32px; }
+  #overlay p { font-size:15px; line-height:1.6; color:#fff; }
+  #overlay p b { color:var(--yellow); font-weight:400; }
+  #overlay .big { font-size:52px; color:var(--yellow); font-variant-numeric:tabular-nums; paint-order:stroke fill; -webkit-text-stroke:6px var(--ink); text-shadow:0 5px 0 var(--ink); line-height:1; }
+  #overlay .big small { font-size:22px; margin-left:4px; }
+  #overlay .badge { background:#fff; color:var(--ink); border:3px solid var(--ink); border-radius:999px; box-shadow:0 4px 0 var(--ink); padding:4px 14px; font-size:15px; }
+  #overlay .badge.good { background:#8dffb0; }
+  #overlay .help {
+    font-size:14px; color:var(--ink); line-height:1.75;
+    background:#fff; border:3px solid var(--ink); border-radius:18px; box-shadow:0 5px 0 var(--ink);
+    padding:10px 16px;
+  }
+  #overlay button {
+    margin-top:2px;
+    background:var(--yellow); color:var(--ink); font-size:22px; font-family:inherit;
+    border:3px solid var(--ink); border-radius:999px; padding:10px 38px;
+    box-shadow:0 6px 0 var(--ink); cursor:pointer;
+  }
+  #overlay button.sub { background:#fff; font-size:15px; padding:7px 16px; box-shadow:0 4px 0 var(--ink); }
+  #overlay button:active { transform:translateY(4px); box-shadow:0 2px 0 var(--ink); }
+  #overlay .row { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .courses { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; width:100%; max-width:330px; }
+  #overlay button.course {
+    display:flex; flex-direction:column; align-items:center; gap:0; padding:8px 6px; font-size:14px; border-radius:18px;
+    background:#fff; box-shadow:0 5px 0 var(--ink); margin:0;
+  }
+  #overlay button.course b { font-size:26px; font-weight:400; line-height:1.1; }
+  #overlay button.course small { font-size:12px; color:var(--muted); min-height:14px; }
+  #overlay button.course:disabled { background:#b9b2d6; cursor:default; transform:none; box-shadow:0 5px 0 var(--ink); opacity:.85; }
+
+  /* 화면 조작 버튼 (터치 기기에서만) */
+  #pad { display:none; width:100%; justify-content:space-between; align-items:flex-end; padding:10px 6px 0; touch-action:none; }
+  body.touch #pad { display:flex; }
+  #pad .dpad { display:grid; grid-template-columns:repeat(3, 58px); grid-template-rows:repeat(2, 58px); gap:6px; grid-template-areas:". u ." "l d r"; }
+  #pad button {
+    background:#fff; border:3px solid var(--ink); border-radius:16px; box-shadow:0 5px 0 var(--ink);
+    font-size:22px; color:var(--ink); font-family:inherit; touch-action:none;
+  }
+  #pad button.on { transform:translateY(4px); box-shadow:0 1px 0 var(--ink); background:var(--yellow); }
+  #pad [data-k="U"] { grid-area:u; } #pad [data-k="L"] { grid-area:l; } #pad [data-k="D"] { grid-area:d; } #pad [data-k="R"] { grid-area:r; }
+  #pad .digs { display:flex; flex-direction:column; gap:8px; }
+  #pad .digs button { width:92px; height:58px; font-size:17px; background:#ffe9a0; }
+  #pad .digs button.on { background:var(--yellow); }
+
+  /* 폰 크기: 점수판과 결과 화면을 컴팩트하게 (기본 규칙보다 뒤에 있어야 덮어쓴다) */
+  @media (max-width:420px) {
+    #hud { gap:4px; padding-bottom:6px; }
+    #hud .label { display:none; }
+    #hud .item { padding:2px 9px; height:34px; box-shadow:0 3px 0 var(--ink); }
+    #hud .value { font-size:16px; }
+    #hud button { width:32px; height:32px; font-size:13px; box-shadow:0 3px 0 var(--ink); }
+    #overlay { gap:6px; padding:10px; }
+    #overlay h1 { font-size:44px; }
+    #overlay h2 { font-size:24px; -webkit-text-stroke-width:5px; }
+    #overlay p { font-size:13px; line-height:1.4; }
+    #overlay .big { font-size:36px; -webkit-text-stroke-width:5px; }
+    #overlay .big small { font-size:18px; }
+    #overlay .badge { font-size:13px; padding:3px 12px; box-shadow:0 3px 0 var(--ink); }
+    #overlay .help { font-size:12px; padding:8px 12px; }
+    #overlay button { font-size:18px; padding:7px 28px; box-shadow:0 5px 0 var(--ink); }
+    #overlay button.sub { font-size:13px; padding:5px 10px; box-shadow:0 3px 0 var(--ink); }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="col">
+    <div id="hud">
+      <div class="item"><span class="label">코스</span><span class="value" id="stageNo">1</span></div>
+      <div class="item gold"><span class="label">금괴</span><span class="value" id="gold">0/0</span></div>
+      <div class="item"><span class="label">TIME</span><span class="value" id="time">0.0</span></div>
+      <div class="item"><span class="label">BEST</span><span class="value" id="best">-</span></div>
+      <div class="icons">
+        <button id="muteBtn" title="소리 (M)">🔊</button>
+        <button id="pauseBtn" title="일시정지 (P)">⏸</button>
+      </div>
+    </div>
+    <div id="wrap">
+      <canvas id="game"></canvas>
+      <div id="overlay"></div>
+    </div>
+    <div id="pad">
+      <div class="dpad">
+        <button data-k="U">▲</button>
+        <button data-k="L">◀</button>
+        <button data-k="D">▼</button>
+        <button data-k="R">▶</button>
+      </div>
+      <div class="digs">
+        <button data-dig="-1">⛏️ ◀ 파기</button>
+        <button data-dig="1">파기 ▶ ⛏️</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
