@@ -44,16 +44,16 @@ const LEVELS = [
     '......h.........',
     '......h.........',
     '......h.........',
-    '.$....h.......$.',
+    '......h.......$.',
     '######H#####H###',
     '......H.....H...',
-    '...$..H.....H...',
+    '.$.$..H.....H...',
     '###H#####H######',
     '...H.....H......',
     '...H..$..H....G.',
-    '######H#########',
-    '......H.........',
-    'P.....H...$.....',
+    '###H##H#########',
+    '...H..H.........',
+    'P..H..H...$.....',
     '================',
   ] },
   { name: '미끼 작전', map: [
@@ -227,7 +227,8 @@ const nearTile = (e) => (e.p < 0.5 ? [e.tx, e.ty] : [e.tx + e.dx, e.ty + e.dy]);
 
 function newWorld(stage) {
   const lv = parseLevel(LEVELS[stage].map);
-  const k = 1 + Math.min(stage, 7) * 0.035;
+  // 첫 경비 코스는 좁은 사다리 병목을 빠져나갈 여유를 준다.
+  const k = (1 + Math.min(stage, 7) * 0.035) * (stage === 2 ? 0.48 : 1);
   const gsp = { run: GUARD_SPD.run * k, climb: GUARD_SPD.climb * k, rope: GUARD_SPD.rope * k, fall: GUARD_SPD.fall };
   const player = makeEnt(lv.player.x, lv.player.y, PLAYER_SPD);
   player.dig = null;
@@ -394,7 +395,8 @@ function dropGold(w, e) {
 }
 
 function guardArrive(w, e, events) {
-  if (w.gold[e.ty][e.tx] && !e.carry && e.pickCd <= 0) {
+  // 금괴 미끼와 운반은 다음 코스부터 소개한다.
+  if (w.stage !== 2 && w.gold[e.ty][e.tx] && !e.carry && e.pickCd <= 0) {
     w.gold[e.ty][e.tx] = 0;
     e.carry = true;
     e.carryT = CARRY_MIN + Math.random() * (CARRY_MAX - CARRY_MIN);
@@ -423,7 +425,7 @@ function decideGuard(w, e, events) {
   const pDist = dist[idx(px, py)];
 
   let goal = idx(px, py);
-  if (!e.carry && e.pickCd <= 0 && (pDist < 0 || pDist > CHASE_NEAR)) {
+  if (w.stage !== 2 && !e.carry && e.pickCd <= 0 && (pDist < 0 || pDist > CHASE_NEAR)) {
     let bestD = BAIT_RANGE + 1;
     for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
       if (!w.gold[y][x]) continue;
