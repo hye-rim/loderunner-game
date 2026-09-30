@@ -30,7 +30,7 @@
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     padding:8px;
   }
-  #hud { display:flex; align-items:center; gap:6px; padding:0 2px 8px; font-variant-numeric:tabular-nums; width:100%; }
+  #hud { display:flex; align-items:center; gap:6px; padding:0 2px 8px; font-variant-numeric:tabular-nums; width:100%; position:relative; z-index:2; }   /* 버튼의 넓힌 누르는 범위가 아래 판에 가려지지 않게 */
   #hud .item {
     display:flex; align-items:center; gap:5px; white-space:nowrap;
     background:#fff; border:3px solid var(--ink); border-radius:999px; box-shadow:0 4px 0 var(--ink);
@@ -47,6 +47,9 @@
     box-shadow:0 4px 0 var(--ink);
   }
   #hud button:active { transform:translateY(3px); box-shadow:0 1px 0 var(--ink); }
+  /* 버튼 모양은 작아도 누르는 범위는 손가락 크기(44px 남짓)로 넓힌다 */
+  #hud button { position:relative; }
+  #hud button::after { content:''; position:absolute; inset:-10px -6px; }   /* 테두리(3px) 안쪽부터 재므로 그만큼 더 */
   #wrap { position:relative; }
   #game {
     display:block; touch-action:none;
