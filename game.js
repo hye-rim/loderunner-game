@@ -801,9 +801,8 @@ function showTitle() {
     <p>경비를 피해 <b>금괴를 모두 모으면</b> 탈출 사다리가 나타나요.<br>땅을 파서 경비를 빠뜨리고, 금괴를 <b>미끼</b>로 유인하세요!</p>
     <button id="startBtn">시작하기</button>
     <div class="help">
-      ⌨️ ← → ↑ ↓ 이동 · Z 왼쪽 파기 · X 오른쪽 파기<br>
-      📱 화면 아래 버튼으로 이동·파기<br>
-      R 다시 시작 · P 일시정지 · M 소리
+      <span class="pc">⌨️ ← → ↑ ↓ 이동 · Z 왼쪽 파기 · X 오른쪽 파기<br>R 다시 시작 · P 일시정지 · M 소리</span>
+      <span class="touch">👆 화면 아래 버튼으로 이동·파기</span>
     </div>`);
   $('startBtn').onclick = showSelect;
 }

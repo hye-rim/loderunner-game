@@ -133,6 +133,9 @@
     #overlay button { font-size:18px; padding:7px 28px; box-shadow:0 5px 0 var(--ink); }
     #overlay button.sub { font-size:13px; padding:5px 10px; box-shadow:0 3px 0 var(--ink); }
   }
+  /* 기기에 맞는 설명만: 폰(손가락)은 .touch, PC(마우스·키보드)는 .pc */
+  .pc { display:none; }
+  @media (pointer:fine) { .pc { display:inline; } .touch { display:none; } }
 </style>
 </head>
 <body>
