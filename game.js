@@ -1220,7 +1220,7 @@ pad.querySelectorAll('button').forEach((b) => {
   const k = b.dataset.k, dg = b.dataset.dig;
   b.addEventListener('pointerdown', (e) => {
     e.preventDefault();
-    b.setPointerCapture(e.pointerId);
+    try { b.setPointerCapture(e.pointerId); } catch (_) {}      // 손가락이 이미 떨어졌으면 예외가 난다
     b.classList.add('on');
     if (k) pressDir(k); else queueDig(Number(dg));
   });
