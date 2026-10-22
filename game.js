@@ -1,6 +1,12 @@
 'use strict';
 // 오락실 튜토리얼이 '진짜로 일어난 일'을 알아채는 신호 (arcade/public/tutorial.js 가 듣는다. 튜토리얼이 아니면 아무도 안 듣는다)
 const tutorialSignal = (type) => window.dispatchEvent(new CustomEvent('arcade:tutorial', { detail: { type } }));
+// 움직임 신호: 위치가 바뀐 거리가 step 이상 쌓일 때마다 'move' (방향키·터치·마우스로 실제로 움직였는지)
+let tutorialLast = null, tutorialDist = 0;
+function tutorialMoved(x, y, step) {
+  if (tutorialLast) { tutorialDist += Math.abs(x - tutorialLast[0]) + Math.abs(y - tutorialLast[1]); if (tutorialDist >= step) { tutorialDist = 0; tutorialSignal('move'); } }
+  tutorialLast = [x, y];
+}
 
 // 금괴 도둑: 화면·입력·소리·기록·리플레이. 규칙(지형·이동·파기·경비·구멍)은 logic.js (LOGIC_LODERUNNER) 에 있다.
 const L = LOGIC_LODERUNNER;
@@ -574,6 +580,7 @@ function frame(now) {
       while (acc >= 1 / 120 && steps++ < 12) {
         acc -= 1 / 120;
         const events = stepWorld(world, 1 / 120, inp);
+        tutorialMoved(world.player.tx, world.player.ty, 1);
         if (events.length) handleEvents(events);
         if (world.state === 'dead' && state === 'play') { state = 'dead'; }
         if (world.state === 'clear' && state === 'play') { state = 'clear'; setTimeout(() => { if (state === 'clear') afterClearDelay(); }, 900); }
