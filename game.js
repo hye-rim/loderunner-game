@@ -1,4 +1,6 @@
 'use strict';
+// 오락실 튜토리얼이 '진짜로 일어난 일'을 알아채는 신호 (arcade/public/tutorial.js 가 듣는다. 튜토리얼이 아니면 아무도 안 듣는다)
+const tutorialSignal = (type) => window.dispatchEvent(new CustomEvent('arcade:tutorial', { detail: { type } }));
 
 // 금괴 도둑: 화면·입력·소리·기록·리플레이. 규칙(지형·이동·파기·경비·구멍)은 logic.js (LOGIC_LODERUNNER) 에 있다.
 const L = LOGIC_LODERUNNER;
@@ -150,6 +152,7 @@ function burst(x, y, color, n, spd) {
 
 function handleEvents(events) {
   for (const e of events) {
+    tutorialSignal(e.type);
     if (e.type === 'dig') { sfx.dig(); const s = world.player.dig ? world.player.dig.side : 1; burst((world.player.tx + s + 0.5) * T, (world.player.ty + 1) * T, '#d9824a', 8, 70); }
     else if (e.type === 'gold') { sfx.gold(e.left); burst((world.player.tx + 0.5) * T, (world.player.ty + 0.5) * T, '#ffd23f', 10, 90); }
     else if (e.type === 'open') sfx.open();
