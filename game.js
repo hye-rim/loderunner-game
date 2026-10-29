@@ -656,15 +656,39 @@ canvas.addEventListener('pointerdown', () => { if (state === 'replay') endReplay
 const pad = $('pad');
 const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || /[?&]pad=1/.test(location.search);
 if (isTouch) document.body.classList.add('touch');
-pad.querySelectorAll('button').forEach((b) => {
-  const k = b.dataset.k, dg = b.dataset.dig;
+// 방향 패드: 누른 채 끌면 방향이 바뀐다 (손가락마다 따로 추적)
+const dpad = $('dpad');
+const PAD_KEYS = ['U', 'D', 'L', 'R'];                       // 화면의 ▲ ▼ ◀ ▶ 순서
+let padNow = null;
+function padSet(k) {
+  if (k === padNow) return;
+  if (padNow) releaseDir(padNow);
+  padNow = k;
+  if (k) pressDir(k);
+  dpad.querySelectorAll('i').forEach((el, i) => el.classList.toggle('on', PAD_KEYS[i] === k));
+}
+function padFrom(e) {
+  const r = dpad.getBoundingClientRect();
+  const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const knob = dpad.querySelector('b'), lim = r.width * 0.2;
+  knob.style.transform = `translate(${Math.max(-lim, Math.min(lim, dx))}px, ${Math.max(-lim, Math.min(lim, dy))}px)`;
+  padSet(Math.max(Math.abs(dx), Math.abs(dy)) < r.width * 0.12 ? null : Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : (dy > 0 ? 'D' : 'U'));
+}
+const padEnd = () => { dpad.querySelector('b').style.transform = ''; padSet(null); };
+dpad.addEventListener('pointerdown', (e) => { e.preventDefault(); try { dpad.setPointerCapture(e.pointerId); } catch (_) {} padFrom(e); });
+dpad.addEventListener('pointermove', (e) => { if (e.buttons || e.pointerType === 'touch') padFrom(e); });
+dpad.addEventListener('pointerup', padEnd);
+dpad.addEventListener('pointercancel', padEnd);
+// 파기 버튼
+pad.querySelectorAll('button[data-dig]').forEach((b) => {
+  const dg = b.dataset.dig;
   b.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     try { b.setPointerCapture(e.pointerId); } catch (_) {}      // 손가락이 이미 떨어졌으면 예외가 난다
     b.classList.add('on');
-    if (k) pressDir(k); else queueDig(Number(dg));
+    queueDig(Number(dg));
   });
-  const up = () => { b.classList.remove('on'); if (k) releaseDir(k); };
+  const up = () => b.classList.remove('on');
   b.addEventListener('pointerup', up);
   b.addEventListener('pointercancel', up);
   b.addEventListener('lostpointercapture', up);

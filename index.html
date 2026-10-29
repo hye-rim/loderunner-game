@@ -104,7 +104,13 @@
   /* 화면 조작 버튼 (터치 기기에서만) */
   #pad { display:none; width:100%; justify-content:space-between; align-items:flex-end; padding:10px 6px 0; touch-action:none; }
   body.touch #pad { display:flex; }
-  #pad .dpad { display:grid; grid-template-columns:repeat(3, 58px); grid-template-rows:repeat(2, 58px); gap:6px; grid-template-areas:". u ." "l d r"; }
+  /* 방향 패드 하나: 누른 채 끌면 손을 떼지 않고도 방향이 바뀐다 */
+  #pad .dpad { position:relative; width:128px; height:128px; border-radius:50%; background:#fff; border:3px solid var(--ink); box-shadow:0 5px 0 var(--ink); touch-action:none; }
+  #pad .dpad i { position:absolute; font-style:normal; font-size:22px; color:#b9b2d6; }
+  #pad .dpad i.on { color:var(--ink); }
+  #pad .dpad .u { left:50%; top:6px; transform:translateX(-50%); } #pad .dpad .d { left:50%; bottom:6px; transform:translateX(-50%); }
+  #pad .dpad .l { top:50%; left:10px; transform:translateY(-50%); } #pad .dpad .r { top:50%; right:10px; transform:translateY(-50%); }
+  #pad .dpad b { position:absolute; width:44px; height:44px; border-radius:50%; background:var(--yellow); border:3px solid var(--ink); left:37px; top:37px; }
   #pad button {
     background:#fff; border:3px solid var(--ink); border-radius:16px; box-shadow:0 5px 0 var(--ink);
     font-size:22px; color:var(--ink); font-family:inherit; touch-action:none;
@@ -156,12 +162,7 @@
       <div id="overlay"></div>
     </div>
     <div id="pad">
-      <div class="dpad">
-        <button data-k="U">▲</button>
-        <button data-k="L">◀</button>
-        <button data-k="D">▼</button>
-        <button data-k="R">▶</button>
-      </div>
+      <div class="dpad" id="dpad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b></b></div>
       <div class="digs">
         <button data-dig="-1">⛏️ ◀ 파기</button>
         <button data-dig="1">파기 ▶ ⛏️</button>
